@@ -18,6 +18,7 @@ class Product extends Model
         'name',
         'price',
         'description',
+        'main_image',
         'category_id',
     ];
 
@@ -35,6 +36,14 @@ class Product extends Model
     public function characteristics()
     {
         return $this->hasOne(ProductCharacteristic::class);
+    }
+
+    /**
+     * Get the additional images for the product.
+     */
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
     }
 
     /**
