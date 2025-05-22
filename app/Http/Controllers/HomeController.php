@@ -13,10 +13,10 @@ class HomeController extends Controller
      */
     public function index()
     {
-        // Get featured categories
-        $categories = Category::take(5)->get();
-            
-        return view('home', compact('categories'));
+        $categories = Category::all();
+        $featuredProducts = Product::with('category')->latest()->take(8)->get();
+        
+        return view('home', compact('categories', 'featuredProducts'));
     }
 
     /**

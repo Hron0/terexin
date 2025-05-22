@@ -108,7 +108,7 @@
                     <h1 class="display-4 fw-bold mb-4">Цифровая техника будущего - уже сегодня!</h1>
                     <p class="lead mb-4">Откройте для себя мир инновационных технологий с ТехЦиф - вашим надежным партнером в мире цифровых устройств.</p>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="#" class="btn btn-light btn-lg">Каталог товаров</a>
+                        <a href="{{ route('catalog') }}" class="btn btn-light btn-lg">Каталог товаров</a>
                         <a href="{{ route('about') }}" class="btn btn-outline-light btn-lg">Узнать больше</a>
                     </div>
                 </div>
@@ -130,6 +130,7 @@
                     <div class="swiper-wrapper">
                         @foreach($categories as $category)
                             <div class="swiper-slide">
+                                <a href="{{ route('catalog') }}#{{ strtolower($category->name) }}" class="text-decoration-none">
                                 <div class="category-card card border-0 shadow h-100">
                                     @if($category->image)
                                         <img src="{{ asset('storage/' . $category->image) }}" class="card-img-top category-image" alt="{{ $category->name }}">
@@ -139,9 +140,9 @@
                                     <div class="card-body text-center">
                                         <h5 class="card-title fw-bold">{{ $category->name }}</h5>
                                         <p class="card-text">{{ $category->description ?? 'Описание категории отсутствует' }}</p>
-                                        <a href="{{ route('home') }}?category={{ $category->id }}" class="btn btn-sm btn-primary">Перейти</a>
                                     </div>
                                 </div>
+                            </a>
                             </div>
                         @endforeach
                     </div>
