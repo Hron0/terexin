@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('screen')->nullable();
             $table->string('processor')->nullable();
             $table->string('ram')->nullable();
+            $table->string('storage')->nullable();
             $table->string('battery')->nullable();
             $table->string('os')->nullable();
             $table->timestamps();

@@ -9,24 +9,25 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
+        'avatar',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -46,17 +47,22 @@ class User extends Authenticatable
         ];
     }
 
-    public function basket()
+    /**
+     * Check if user is admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
     {
-        return $this->hasOne(Basket::class);
+        return $this->role === 'admin';
     }
 
     /**
-     * Get the reviews for the user.
+     * Get the basket associated with the user.
      */
-    public function reviews()
+    public function basket()
     {
-        return $this->hasMany(Review::class);
+        return $this->hasOne(Basket::class);
     }
 
     /**

@@ -97,21 +97,31 @@
                 <p>{{ $product->description }}</p>
             </div>
             
-            <div class="d-flex mb-4">
-                <div class="input-group me-3" style="width: 130px;">
-                    <button class="btn btn-outline-secondary" type="button" id="decreaseQuantity">-</button>
-                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1">
-                    <button class="btn btn-outline-secondary" type="button" id="increaseQuantity">+</button>
+            @auth
+                <form id="addToCartForm" class="mb-4">
+                    @csrf
+                    <div class="d-flex align-items-center">
+                        <div class="input-group me-3" style="width: 130px;">
+                            <button class="btn btn-outline-secondary" type="button" id="decreaseQuantity">-</button>
+                            <input type="number" class="form-control text-center" id="quantity" name="quantity" value="1" min="1">
+                            <button class="btn btn-outline-secondary" type="button" id="increaseQuantity">+</button>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary flex-grow-1" id="addToCartBtn">
+                            <i class="fas fa-shopping-cart me-2"></i> Добавить в корзину
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-danger ms-2" id="addToFavoritesBtn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </form>
+            @else
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <a href="{{ route('login') }}" class="alert-link">Войдите в аккаунт</a>, чтобы добавить товар в корзину
                 </div>
-                
-                <button class="btn btn-primary flex-grow-1" id="addToCartBtn">
-                    <i class="fas fa-shopping-cart me-2"></i> Добавить в корзину
-                </button>
-                
-                <button class="btn btn-outline-danger ms-2" id="addToFavoritesBtn">
-                    <i class="far fa-heart"></i>
-                </button>
-            </div>
+            @endauth
             
             @if($product->characteristics)
                 <div class="card mb-4">
@@ -194,6 +204,11 @@
                                 <div class="mt-auto">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="fw-bold fs-5">{{ number_format($relatedProduct->price, 0, '.', ' ') }} ₽</span>
+                                        @auth
+                                            <button class="btn btn-sm btn-outline-primary add-to-cart-quick" data-product-id="{{ $relatedProduct->id }}">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                        @endauth
                                     </div>
                                     <a href="{{ route('product.show', $relatedProduct) }}" class="btn btn-primary w-100">Подробнее</a>
                                 </div>
@@ -252,36 +267,106 @@
         const decreaseBtn = document.getElementById('decreaseQuantity');
         const increaseBtn = document.getElementById('increaseQuantity');
         
-        decreaseBtn.addEventListener('click', function() {
-            const currentValue = parseInt(quantityInput.value);
-            if (currentValue > 1) {
-                quantityInput.value = currentValue - 1;
-            }
-        });
+        if (decreaseBtn) {
+            decreaseBtn.addEventListener('click', function() {
+                const currentValue = parseInt(quantityInput.value);
+                if (currentValue > 1) {
+                    quantityInput.value = currentValue - 1;
+                }
+            });
+        }
         
-        increaseBtn.addEventListener('click', function() {
-            const currentValue = parseInt(quantityInput.value);
-            quantityInput.value = currentValue + 1;
-        });
+        if (increaseBtn) {
+            increaseBtn.addEventListener('click', function() {
+                const currentValue = parseInt(quantityInput.value);
+                quantityInput.value = currentValue + 1;
+            });
+        }
         
-        // Add to cart button
-        document.getElementById('addToCartBtn').addEventListener('click', function() {
-            const quantity = parseInt(quantityInput.value);
-            // Add your cart functionality here
-            alert(`Добавлено в корзину: ${quantity} шт.`);
+        // Add to cart form
+        const addToCartForm = document.getElementById('addToCartForm');
+        if (addToCartForm) {
+            addToCartForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const quantity = parseInt(quantityInput.value);
+                const productId = {{ $product->id }};
+                
+                fetch(`/basket/add/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ quantity: quantity })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update cart badge
+                        updateCartBadge(data.cart_count);
+                        
+                        // Show success message
+                        showAlert('success', data.message);
+                    } else {
+                        showAlert('danger', 'Произошла ошибка при добавлении товара в корзину');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'Произошла ошибка при добавлении товара в корзину');
+                });
+            });
+        }
+        
+        // Quick add to cart for related products
+        document.querySelectorAll('.add-to-cart-quick').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                
+                fetch(`/basket/add/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ quantity: 1 })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update cart badge
+                        updateCartBadge(data.cart_count);
+                        
+                        // Show success message
+                        showAlert('success', data.message);
+                    } else {
+                        showAlert('danger', 'Произошла ошибка при добавлении товара в корзину');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'Произошла ошибка при добавлении товара в корзину');
+                });
+            });
         });
         
         // Add to favorites button
-        document.getElementById('addToFavoritesBtn').addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            if (icon.classList.contains('far')) {
-                icon.classList.replace('far', 'fas');
-                alert('Товар добавлен в избранное!');
-            } else {
-                icon.classList.replace('fas', 'far');
-                alert('Товар удален из избранного!');
-            }
-        });
+        const addToFavoritesBtn = document.getElementById('addToFavoritesBtn');
+        if (addToFavoritesBtn) {
+            addToFavoritesBtn.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('far')) {
+                    icon.classList.replace('far', 'fas');
+                    showAlert('success', 'Товар добавлен в избранное!');
+                } else {
+                    icon.classList.replace('fas', 'far');
+                    showAlert('info', 'Товар удален из избранного!');
+                }
+            });
+        }
         
         // Thumbnail images
         const thumbnails = document.querySelectorAll('.thumbnail-img');
@@ -301,5 +386,37 @@
             thumbnails[0].classList.add('active');
         }
     });
+    
+    function updateCartBadge(count) {
+        const badge = document.querySelector('.cart-badge');
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+    
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 3000);
+    }
 </script>
 @endsection

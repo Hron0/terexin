@@ -12,14 +12,14 @@ class Product extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var array
      */
     protected $fillable = [
         'name',
-        'price',
         'description',
-        'main_image',
+        'price',
         'category_id',
+        'main_image',
     ];
 
     /**
@@ -43,15 +43,7 @@ class Product extends Model
      */
     public function images()
     {
-        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
-    }
-
-    /**
-     * Get the reviews for the product.
-     */
-    public function reviews()
-    {
-        return $this->hasMany(Review::class);
+        return $this->hasMany(ProductImage::class);
     }
 
     /**
@@ -68,13 +60,5 @@ class Product extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
-    }
-
-    /**
-     * Calculate the average rating for the product.
-     */
-    public function getAverageRatingAttribute()
-    {
-        return $this->reviews()->avg('rating') ?: 0;
     }
 }

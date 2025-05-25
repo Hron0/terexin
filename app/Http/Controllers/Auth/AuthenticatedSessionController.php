@@ -28,7 +28,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('home', absolute: false));
+        $user = Auth::user();
+
+        if ($user->isAdmin()) {
+            return redirect()->intended(route('admin.dashboard'))
+                ->with('success', 'Добро пожаловать в административную панель!');
+        }
+
+        return redirect()->intended(route('catalog'))
+            ->with('success', 'Добро пожаловать в ТехЦиф!');
     }
 
     /**

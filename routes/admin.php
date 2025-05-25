@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
@@ -14,4 +15,4 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Products management
     Route::resource('products', ProductController::class);
     Route::delete('products/images/{id}', [ProductController::class, 'deleteImage'])->name('products.delete-image');
-});
+})->middleware(AdminMiddleware::class);

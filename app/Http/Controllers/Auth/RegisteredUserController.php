@@ -45,6 +45,14 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('home', absolute: false));
+        session(['cart_count' => 0]);
+
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard')
+                ->with('success', 'Регистрация успешна! Добро пожаловать в административную панель!');
+        }
+
+        return redirect()->route('catalog')
+            ->with('success', 'Регистрация успешна! Добро пожаловать в ТехЦиф!');
     }
 }

@@ -23,16 +23,29 @@ class ProductController extends Controller
         // Base query
         $query = Product::with(['category', 'characteristics']);
         
-        // Apply filters if they exist in the request
-        if ($request->has('category_id') && $request->category_id) {
+        // Apply search filter if it exists
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('description', 'LIKE', "%{$searchTerm}%")
+                  ->orWhereHas('category', function($categoryQuery) use ($searchTerm) {
+                      $categoryQuery->where('name', 'LIKE', "%{$searchTerm}%");
+                  });
+            });
+        }
+
+        // Apply category filter - check for both existence and non-empty value
+        if ($request->has('category_id') && !empty($request->category_id) && $request->category_id !== '') {
             $query->where('category_id', $request->category_id);
         }
-        
-        if ($request->has('min_price') && $request->min_price) {
+
+        // Apply price filters
+        if ($request->has('min_price') && !empty($request->min_price) && $request->min_price !== '') {
             $query->where('price', '>=', $request->min_price);
         }
-        
-        if ($request->has('max_price') && $request->max_price) {
+
+        if ($request->has('max_price') && !empty($request->max_price) && $request->max_price !== '') {
             $query->where('price', '<=', $request->max_price);
         }
         
@@ -61,6 +74,16 @@ class ProductController extends Controller
         // Get paginated results
         $products = $query->paginate(12)->withQueryString();
         
+        // Debug information (remove in production)
+        \Log::info('Catalog filters applied:', [
+            'category_id' => $request->category_id,
+            'min_price' => $request->min_price,
+            'max_price' => $request->max_price,
+            'sort' => $request->sort,
+            'search' => $request->search,
+            'products_count' => $products->total()
+        ]);
+        
         // Pass all necessary data to the view
         return view('catalog', compact(
             'products', 
@@ -68,7 +91,7 @@ class ProductController extends Controller
             'minPrice', 
             'maxPrice',
             'sortBy'
-        ));
+        ))->with('searchTerm', $request->search ?? '');
     }
 
     /**

@@ -12,23 +12,19 @@ class Order extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var array
      */
     protected $fillable = [
         'user_id',
-        'total_price',
-        'delivery_date',
-        'address',
+        'total',
         'status',
-    ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'delivery_date' => 'date',
+        'full_name',
+        'email',
+        'phone',
+        'address',
+        'payment_method',
+        'delivery_method',
+        'notes',
     ];
 
     /**
@@ -48,10 +44,32 @@ class Order extends Model
     }
 
     /**
-     * Scope a query to only include orders with a specific status.
+     * Get the status badge color.
      */
-    public function scopeStatus($query, $status)
+    public function getStatusBadgeAttribute()
     {
-        return $query->where('status', $status);
+        return match($this->status) {
+            'pending' => 'warning',
+            'processing' => 'info',
+            'shipped' => 'primary',
+            'delivered' => 'success',
+            'cancelled' => 'danger',
+            default => 'secondary'
+        };
+    }
+
+    /**
+     * Get the status text.
+     */
+    public function getStatusTextAttribute()
+    {
+        return match($this->status) {
+            'pending' => 'Ожидает обработки',
+            'processing' => 'В обработке',
+            'shipped' => 'Отправлен',
+            'delivered' => 'Доставлен',
+            'cancelled' => 'Отменен',
+            default => 'Неизвестно'
+        };
     }
 }

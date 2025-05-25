@@ -15,6 +15,11 @@
                 </div>
                 <div class="card-body">
                     <form id="filter-form" method="GET" action="{{ route('catalog') }}">
+                        <!-- Preserve search term -->
+                        @if(request('search'))
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+                        @endif
+                        
                         <!-- Category Filter -->
                         <div class="mb-4">
                             <h6 class="fw-bold mb-3">Категории</h6>
@@ -67,8 +72,17 @@
                             </select>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary w-100">Применить фильтры</button>
-                        <a href="{{ route('catalog') }}" class="btn btn-outline-secondary w-100 mt-2">Сбросить фильтры</a>
+                        <!-- Loading indicator -->
+                        <div id="loading-indicator" class="text-center d-none">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Загрузка...</span>
+                            </div>
+                            <small class="d-block mt-2 text-muted">Применяем фильтры...</small>
+                        </div>
+                        
+                        <a href="{{ route('catalog') }}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-times me-1"></i>Сбросить фильтры
+                        </a>
                     </form>
                 </div>
             </div>
@@ -78,7 +92,22 @@
         <div class="col-lg-9">
             <!-- Products Count and View Toggle -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <p class="mb-0">Найдено товаров: <strong>{{ $products->total() }}</strong></p>
+                <div>
+                    <p class="mb-0">
+                        Найдено товаров: <strong>{{ $products->total() }}</strong>
+                        @if(request('search'))
+                            <br><small class="text-muted">по запросу: "{{ request('search') }}"</small>
+                        @endif
+                        @if(request('category_id'))
+                            @php
+                                $selectedCategory = $categories->find(request('category_id'));
+                            @endphp
+                            @if($selectedCategory)
+                                <br><small class="text-muted">в категории: {{ $selectedCategory->name }}</small>
+                            @endif
+                        @endif
+                    </p>
+                </div>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-outline-secondary view-btn active" data-view="grid">
                         <i class="fas fa-th"></i>
@@ -113,9 +142,11 @@
                                 <div class="mt-auto">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="fw-bold fs-5">{{ number_format($product->price, 0, '.', ' ') }} ₽</span>
-                                        <button class="btn btn-sm btn-outline-primary add-to-cart-btn">
-                                            <i class="fas fa-shopping-cart"></i>
-                                        </button>
+                                        @auth
+                                            <button class="btn btn-sm btn-primary add-to-cart-btn" data-product-id="{{ $product->id }}" title="Добавить в корзину">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                        @endauth
                                     </div>
                                     <a href="{{ route('product.show', $product) }}" class="btn btn-primary w-100">Подробнее</a>
                                 </div>
@@ -179,9 +210,11 @@
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="fw-bold fs-5">{{ number_format($product->price, 0, '.', ' ') }} ₽</span>
                                             <div>
-                                                <button class="btn btn-outline-primary me-2 add-to-cart-btn">
-                                                    <i class="fas fa-shopping-cart me-1"></i> В корзину
-                                                </button>
+                                                @auth
+                                                    <button class="btn btn-primary me-2 add-to-cart-btn" data-product-id="{{ $product->id }}">
+                                                        <i class="fas fa-shopping-cart me-1"></i> В корзину
+                                                    </button>
+                                                @endauth
                                                 <a href="{{ route('product.show', $product) }}" class="btn btn-primary">Подробнее</a>
                                             </div>
                                         </div>
@@ -236,6 +269,10 @@
         align-items: center;
         justify-content: center;
         padding: 0;
+        transition: all 0.3s ease;
+    }
+    .add-to-cart-btn:hover {
+        transform: scale(1.1);
     }
     .product-card-list .add-to-cart-btn {
         width: auto;
@@ -245,10 +282,21 @@
     .noUi-connect {
         background: #0d6efd;
     }
+    .category-filter {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
     .category-filter.active {
-        background-color: #0d6efd;
-        color: white;
-        border-color: #0d6efd;
+        background-color: #0d6efd !important;
+        color: white !important;
+        border-color: #0d6efd !important;
+    }
+    .category-filter:hover:not(.active) {
+        background-color: #f8f9fa;
+    }
+    .filter-updating {
+        opacity: 0.7;
+        pointer-events: none;
     }
 </style>
 @endsection
@@ -257,6 +305,33 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        let filterTimeout;
+        const filterForm = document.getElementById('filter-form');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const categoryIdInput = document.getElementById('category_id');
+        
+        // Show loading indicator
+        function showLoading() {
+            loadingIndicator.classList.remove('d-none');
+            document.querySelector('.col-lg-9').classList.add('filter-updating');
+        }
+        
+        // Hide loading indicator
+        function hideLoading() {
+            loadingIndicator.classList.add('d-none');
+            document.querySelector('.col-lg-9').classList.remove('filter-updating');
+        }
+        
+        // Submit form with delay
+        function submitFormWithDelay() {
+            clearTimeout(filterTimeout);
+            showLoading();
+            
+            filterTimeout = setTimeout(() => {
+                filterForm.submit();
+            }, 1500);
+        }
+        
         // Initialize price slider
         const priceSlider = document.getElementById('price-slider');
         const minPriceInput = document.getElementById('min_price');
@@ -269,7 +344,7 @@
                     parseInt(maxPriceInput.value) || {{ $maxPrice }}
                 ],
                 connect: true,
-                step: 100,
+                step: 1000,
                 range: {
                     'min': {{ $minPrice }},
                     'max': {{ $maxPrice }}
@@ -294,13 +369,20 @@
                 }
             });
             
+            // Submit form when slider changes (with delay)
+            priceSlider.noUiSlider.on('change', function() {
+                submitFormWithDelay();
+            });
+            
             // Update slider when inputs change
             minPriceInput.addEventListener('change', function() {
                 priceSlider.noUiSlider.set([this.value, null]);
+                submitFormWithDelay();
             });
             
             maxPriceInput.addEventListener('change', function() {
                 priceSlider.noUiSlider.set([null, this.value]);
+                submitFormWithDelay();
             });
         }
         
@@ -327,65 +409,31 @@
         
         // Category filter
         const categoryFilters = document.querySelectorAll('.category-filter');
-        const categoryIdInput = document.getElementById('category_id');
         
         categoryFilters.forEach(filter => {
             filter.addEventListener('click', function(e) {
                 e.preventDefault();
                 
+                // Update active state immediately for visual feedback
                 categoryFilters.forEach(f => f.classList.remove('active'));
                 this.classList.add('active');
                 
+                // Get the category ID from data attribute
                 const categoryId = this.getAttribute('data-category-id');
+                console.log('Selected category ID:', categoryId); // Debug log
+                
+                // Set the hidden input value
                 categoryIdInput.value = categoryId;
+                console.log('Hidden input value set to:', categoryIdInput.value); // Debug log
                 
-                // Update URL hash
-                if (categoryId) {
-                    const category = this.textContent.trim();
-                    window.location.hash = encodeURIComponent(category.toLowerCase());
-                } else {
-                    window.location.hash = '';
-                }
-                
-                // Submit form
-                document.getElementById('filter-form').submit();
+                // Submit form with delay
+                submitFormWithDelay();
             });
         });
         
-        // Handle URL hash on page load
-        function handleUrlHash() {
-            const hash = window.location.hash.substring(1);
-            if (hash) {
-                const decodedHash = decodeURIComponent(hash).toLowerCase();
-                
-                // Find matching category
-                let found = false;
-                categoryFilters.forEach(filter => {
-                    const categoryName = filter.textContent.trim().toLowerCase();
-                    if (categoryName === decodedHash) {
-                        filter.click();
-                        found = true;
-                    }
-                });
-                
-                // If no exact match, try partial match
-                if (!found) {
-                    categoryFilters.forEach(filter => {
-                        const categoryName = filter.textContent.trim().toLowerCase();
-                        if (categoryName.includes(decodedHash) || decodedHash.includes(categoryName)) {
-                            filter.click();
-                        }
-                    });
-                }
-            }
-        }
-        
-        // Call on page load
-        handleUrlHash();
-        
         // Sort change handler
         document.getElementById('sort').addEventListener('change', function() {
-            document.getElementById('filter-form').submit();
+            submitFormWithDelay();
         });
         
         // Favorite button toggle
@@ -404,10 +452,73 @@
         // Add to cart functionality
         document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                // Add your cart functionality here
-                alert('Товар добавлен в корзину!');
+                const productId = this.getAttribute('data-product-id');
+                
+                fetch(`/basket/add/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ quantity: 1 })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update cart badge
+                        updateCartBadge(data.cart_count);
+                        
+                        // Show success message
+                        showAlert('success', data.message);
+                    } else {
+                        showAlert('danger', 'Произошла ошибка при добавлении товара в корзину');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'Произошла ошибка при добавлении товара в корзину');
+                });
             });
         });
+        
+        // Cancel loading if user navigates away
+        window.addEventListener('beforeunload', function() {
+            clearTimeout(filterTimeout);
+            hideLoading();
+        });
     });
+    
+    function updateCartBadge(count) {
+        const badge = document.querySelector('.cart-badge');
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+    
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 3000);
+    }
 </script>
 @endsection
