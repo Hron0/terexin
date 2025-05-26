@@ -9,6 +9,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             min-height: 100vh;
@@ -124,7 +126,7 @@
                     </ul>
                     
                     <!-- Search Form -->
-                    <form class="d-flex search-form mx-lg-3" action="{{ route('catalog') }}" method="GET">
+                    <form class="d-flex search-form mx-lg-3" action="{{ route('catalog') }}" method="GET" style="margin-bottom: 0px;">
                         <!-- Preserve current filters -->
                         @if(request('category_id'))
                             <input type="hidden" name="category_id" value="{{ request('category_id') }}">
@@ -148,7 +150,7 @@
                     </form>
                     
                     <!-- Right Navigation -->
-                    <ul class="navbar-nav" style="align-items: center;">
+                    <ul class="navbar-nav">
                         @guest
                             <!-- Unauthorized User Navigation -->
                             <li class="nav-item">
@@ -165,7 +167,7 @@
                             <!-- Basket Link (only for regular users) -->
                             @if(!Auth::user()->isAdmin())
                                 <li class="nav-item">
-                                    <a class="btn-cart" href="{{ route('basket') }}">
+                                    <a class="nav-link {{ request()->routeIs('basket') ? 'active' : '' }}" href="{{ route('basket') }}">
                                         <i class="fas fa-shopping-cart me-1"></i> Корзина
                                         @if(session('cart_count', 0) > 0)
                                             <span class="cart-badge">{{ session('cart_count', 0) }}</span>
@@ -299,11 +301,12 @@
                 <div class="col-md-6 text-center text-md-start">
                     <p class="mb-0">&copy; {{ date('Y') }} ТехЦиф. Все права защищены.</p>
                 </div>
-                <div class="col-md-6 text-center text-md-end">
+                {{-- Фото Visa, MasterCard & Mir (Платёжные системы) --}}
+                {{-- <div class="col-md-6 text-center text-md-end">
                     <img src="https://via.placeholder.com/50x30" alt="Visa" class="me-2">
                     <img src="https://via.placeholder.com/50x30" alt="MasterCard" class="me-2">
                     <img src="https://via.placeholder.com/50x30" alt="Mir">
-                </div>
+                </div> --}}
             </div>
         </div>
     </footer>
@@ -322,3 +325,174 @@
     @yield('scripts')
 </body>
 </html>
+
+
+
+
+
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .main-content {
+        flex: 1;
+    }
+    .navbar-brand {
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: #fff !important;
+    }
+    .navbar-nav .nav-link {
+        color: rgba(255, 255, 255, 0.85) !important;
+        font-weight: 500;
+        padding: 0.5rem 1rem !important;
+        transition: color 0.3s ease;
+    }
+    .navbar-nav .nav-link:hover {
+        color: #fff !important;
+    }
+    .navbar-nav .nav-link.active {
+        color: #fff !important;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 0.375rem;
+    }
+    .footer {
+        background-color: #343a40;
+        color: white;
+    }
+    .cart-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background-color: #dc3545;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .dropdown-menu {
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .search-form {
+        max-width: 300px;
+    }
+    @media (max-width: 992px) {
+        .search-form {
+            max-width: 100%;
+            margin: 0.5rem 0;
+        }
+    }
+    .btn-cart {
+        position: relative;
+        color: rgba(255, 255, 255, 0.85) !important;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        transition: all 0.3s ease;
+    }
+    .btn-cart:hover {
+        color: #fff !important;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
+
+
+
+
+
+
+
+
+
+                    <!-- Right Navigation -->
+                    <ul class="navbar-nav">
+                        @guest
+                            <!-- Unauthorized User Navigation -->
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('login') }}">
+                                    <i class="fas fa-sign-in-alt me-1"></i> Войти
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('register') }}">
+                                    <i class="fas fa-user-plus me-1"></i> Регистрация
+                                </a>
+                            </li>
+                        @else
+                            <!-- Basket Link (only for regular users) -->
+                            @if(!Auth::user()->isAdmin())
+                                <li class="nav-item">
+                                    <a class="btn-cart" href="{{ route('basket') }}">
+                                        <i class="fas fa-shopping-cart me-1"></i> Корзина
+                                        @if(session('cart_count', 0) > 0)
+                                            <span class="cart-badge">{{ session('cart_count', 0) }}</span>
+                                        @endif
+                                    </a>
+                                </li>
+                            @endif
+                            
+                            <!-- User Dropdown -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    @if(Auth::user()->avatar)
+                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ Auth::user()->name }}" class="user-avatar me-2">
+                                    @else
+                                        <i class="fas fa-user-circle me-1"></i>
+                                    @endif
+                                    {{ Auth::user()->name }}
+                                    @if(Auth::user()->isAdmin())
+                                        <span class="badge bg-warning text-dark ms-2">Admin</span>
+                                    @endif
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    @if(Auth::user()->isAdmin())
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                                <i class="fas fa-cogs me-2"></i> Админ-панель
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                    @else
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                                <i class="fas fa-user me-2"></i> Профиль
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('orders') }}">
+                                                <i class="fas fa-shopping-bag me-2"></i> Мои заказы
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                    @endif
+                                    <li>
+                                        <form method="POST" action="{{ route('logout') }}" id="logout-form">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fas fa-sign-out-alt me-2"></i> Выйти
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endguest
+                    </ul>

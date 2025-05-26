@@ -1,122 +1,75 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>О компании ТехЦиф - Цифровая техника будущего</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .hero-section {
-            background: linear-gradient(135deg, #0061f2 0%, #00baf2 100%);
-            color: white;
-            padding: 4rem 0;
-        }
-        .feature-icon {
-            font-size: 2.5rem;
-            color: #0061f2;
-            margin-bottom: 1rem;
-        }
-        .timeline {
-            position: relative;
-            padding-left: 30px;
-        }
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 2px;
-            background-color: #0061f2;
-        }
-        .timeline-item {
-            position: relative;
-            padding-bottom: 30px;
-        }
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -34px;
-            top: 0;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: #0061f2;
-            border: 3px solid white;
-            box-shadow: 0 0 0 2px #0061f2;
-        }
-        .team-member-img {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid #0061f2;
-        }
-        .brand-logo {
-            height: 80px;
-            object-fit: contain;
-            filter: grayscale(100%);
-            opacity: 0.7;
-            transition: all 0.3s ease;
-        }
-        .brand-logo:hover {
-            filter: grayscale(0%);
-            opacity: 1;
-        }
-        .store-card {
-            transition: transform 0.3s ease;
-        }
-        .store-card:hover {
-            transform: translateY(-5px);
-        }
-    </style>
-</head>
-<body>
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <nav class="navbar navbar-expand-lg navbar-light container py-3">
-            <div class="container-fluid">
-                <a class="navbar-brand fw-bold text-primary fs-3" href="{{ route('home') }}">
-                    <i class="fas fa-microchip me-2"></i>ТехЦиф
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('home') }}">Главная</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Каталог</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{{ route('about') }}">О компании</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Контакты</a>
-                        </li>
-                    </ul>
-                    <div class="d-flex ms-lg-4">
-                        <a href="#" class="btn btn-outline-primary me-2">
-                            <i class="fas fa-user me-1"></i> Войти
-                        </a>
-                        <a href="#" class="btn btn-primary position-relative">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                0
-                            </span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
+@extends('layouts.app')
+
+@section('title', 'ТехЦиф - Магазин цифровой техники')
+
+@section('styles')
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #0061f2 0%, #00baf2 100%);
+        color: white;
+        padding: 4rem 0;
+    }
+    .feature-icon {
+        font-size: 2.5rem;
+        color: #0061f2;
+        margin-bottom: 1rem;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: #0061f2;
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 30px;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -34px;
+        top: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #0061f2;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #0061f2;
+    }
+    .team-member-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #0061f2;
+    }
+    .brand-logo {
+        height: 80px;
+        object-fit: contain;
+        filter: grayscale(100%);
+        opacity: 0.7;
+        transition: all 0.3s ease;
+    }
+    .brand-logo:hover {
+        filter: grayscale(0%);
+        opacity: 1;
+    }
+    .store-card {
+        transition: transform 0.3s ease;
+    }
+    .store-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+@endsection
+@section('content')
 
     <!-- Hero Section -->
     <section class="hero-section">
@@ -130,24 +83,13 @@
         </div>
     </section>
 
-    <!-- Breadcrumbs -->
-    <div class="bg-light py-2">
-        <div class="container">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none">Главная</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">О компании</li>
-                </ol>
-            </nav>
-        </div>
-    </div>
 
     <!-- Main Content -->
     <section class="py-5">
         <div class="container">
             <div class="row mb-5">
                 <div class="col-lg-6 mb-4 mb-lg-0">
-                    <img src="https://via.placeholder.com/600x400" alt="О компании ТехЦиф" class="img-fluid rounded shadow">
+                    <img src="{{ asset('staticImages/about1.jpg') }}" alt="О компании ТехЦиф" class="img-fluid rounded shadow">
                 </div>
                 <div class="col-lg-6">
                     <h2 class="fw-bold mb-4">Наша история</h2>
@@ -251,22 +193,22 @@
                     <p class="lead">Познакомьтесь с профессионалами, которые делают ТехЦиф особенным</p>
                 </div>
                 <div class="col-md-6 col-lg-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Александр Петров" class="team-member-img mb-3">
+                    <img src="{{ asset('staticImages/employee1.jfif') }}" alt="Александр Петров" class="team-member-img mb-3">
                     <h5 class="fw-bold">Александр Петров</h5>
                     <p class="text-muted">Генеральный директор</p>
                 </div>
                 <div class="col-md-6 col-lg-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Елена Смирнова" class="team-member-img mb-3">
+                    <img src="{{ asset('staticImages/employee.jpg') }}" alt="Елена Смирнова" class="team-member-img mb-3">
                     <h5 class="fw-bold">Елена Смирнова</h5>
                     <p class="text-muted">Коммерческий директор</p>
                 </div>
                 <div class="col-md-6 col-lg-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Дмитрий Иванов" class="team-member-img mb-3">
+                    <img src="{{ asset('staticImages/employee2.jpg') }}" alt="Дмитрий Иванов" class="team-member-img mb-3">
                     <h5 class="fw-bold">Дмитрий Иванов</h5>
                     <p class="text-muted">Технический директор</p>
                 </div>
                 <div class="col-md-6 col-lg-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Ольга Козлова" class="team-member-img mb-3">
+                    <img src="{{ asset('staticImages/employee3.jpg') }}" alt="Ольга Козлова" class="team-member-img mb-3">
                     <h5 class="fw-bold">Ольга Козлова</h5>
                     <p class="text-muted">Директор по маркетингу</p>
                 </div>
@@ -362,36 +304,6 @@
             </div>
 
             <!-- Partners -->
-            <div class="row mb-5">
-                <div class="col-12 text-center mb-5">
-                    <h2 class="fw-bold">Наши партнеры</h2>
-                    <p class="lead">Мы сотрудничаем с ведущими производителями техники</p>
-                </div>
-                <div class="col-6 col-md-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/200x80?text=Partner+1" alt="Партнер 1" class="img-fluid brand-logo">
-                </div>
-                <div class="col-6 col-md-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/200x80?text=Partner+2" alt="Партнер 2" class="img-fluid brand-logo">
-                </div>
-                <div class="col-6 col-md-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/200x80?text=Partner+3" alt="Партнер 3" class="img-fluid brand-logo">
-                </div>
-                <div class="col-6 col-md-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/200x80?text=Partner+4" alt="Партнер 4" class="img-fluid brand-logo">
-                </div>
-                <div class="col-6 col-md-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/200x80?text=Partner+5" alt="Партнер 5" class="img-fluid brand-logo">
-                </div>
-                <div class="col-6 col-md-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/200x80?text=Partner+6" alt="Партнер 6" class="img-fluid brand-logo">
-                </div>
-                <div class="col-6 col-md-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/200x80?text=Partner+7" alt="Партнер 7" class="img-fluid brand-logo">
-                </div>
-                <div class="col-6 col-md-3 mb-4 text-center">
-                    <img src="https://via.placeholder.com/200x80?text=Partner+8" alt="Партнер 8" class="img-fluid brand-logo">
-                </div>
-            </div>
 
             <!-- CTA -->
             <div class="row py-5 bg-primary text-white rounded">
@@ -480,8 +392,8 @@
             </div>
         </div>
     </footer>
-
+@endsection
+@section('scripts')
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+@endsection
